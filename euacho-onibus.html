@@ -87,11 +87,13 @@ Example:
                     <span>Data [[bus.dateTime]]</span>
                 </google-map-marker>
             </template>
-            <google-map-poly closed>
-                <template is="dom-repeat" items="[[mapPoints]]" as="point">
-                    <google-map-point latitude="[[point.latitude]]" longitude="[[point.longitude]]"></google-map-point>
-                </template>
-            </google-map-poly>
+            <template is="dom-repeat" items="[[mapShapes]]" as="shape">
+                <google-map-poly>
+                    <template is="dom-repeat" items="[[shape]]" as="point">
+                        <google-map-point latitude="[[point.latitude]]" longitude="[[point.longitude]]"></google-map-point>
+                    </template>
+                </google-map-poly>
+            </template>
         </google-map>
 
         <!--<google-map-directions id="mapSearch" map="{{map}}"></google-map-directions>-->
@@ -130,7 +132,7 @@ Example:
                     type: String,
                     notity: true,
                 },
-                mapPoints:{
+                mapShapes:{
                     type: Object,
                     notify: true,
                     value: function () {
@@ -210,12 +212,25 @@ Example:
                   
                   var lat = item[5] || '';
                   var lon = item[6] || '';
+                  var shape = item[4];
                   
-                  return { latitude: parseFloat(lat.replace(/['"]+/g, '')), longitude: parseFloat(lon.replace(/['"]+/g, '')) }; 
+                  return { latitude: parseFloat(lat.replace(/['"]+/g, '')), longitude: parseFloat(lon.replace(/['"]+/g, '')), shape: shape }; 
                 });
                 
                 // var kml=  createKml(points);
-                this.mapPoints = points.concat(points.slice().reverse());
+                var mappedPoints = points.reduce(function(prev, curr){
+                    if(prev[curr.shape] === undefined){
+                        prev[curr.shape] = [];
+                    }
+                    prev[curr.shape].push(curr);
+                    return prev
+                },{});
+                
+                var mapShapes = [];
+                for(var key in mappedPoints){
+                    mapShapes.push(mappedPoints[key]);
+                }
+                this.mapShapes = mapShapes;
             }
             
         });
