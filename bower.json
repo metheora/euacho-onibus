@@ -22,7 +22,8 @@
     "iron-ajax": "PolymerElements/iron-ajax#~1.1.1",
     "google-map": "GoogleWebComponents/google-map#~1.1.9",
     "paper-input": "PolymerElements/paper-input#^1.1.5",
-    "paper-slider": "PolymerElements/paper-slider#^1.0.9"
+    "paper-slider": "PolymerElements/paper-slider#^1.0.9",
+    "geo-location": "^1.0.2"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0"

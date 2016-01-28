@@ -17,6 +17,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../google-map/google-map-poly.html">
 <link rel="import" href="../google-map/google-map-point.html">
 <link rel="import" href="../paper-slider/paper-slider.html">
+<link rel="import" href="../geo-location/geo-location.html">
 
 <!--
 An element providing a solution to no problem in particular.
@@ -78,7 +79,11 @@ Example:
         <span style="padding-left:12px">Distância: <span class="caption">[[kmRange]]</span> KM </span>
         <paper-slider style="width:100%" pin snaps min="2" max="20" max-markers="20" step="1" on-change="_getPinData" value="{{kmRange}}"></paper-slider>
 
-        <google-map id="map" mouse-events="true" map="{{map}}" drag-events="true" longitude="-43.415540359863265" latitude="-22.999931627085985"
+
+         <geo-location latitude="{{lat}}"
+               longitude="{{lon}}"></geo-location>
+               
+        <google-map id="map" mouse-events="true" map="{{map}}" drag-events="true" longitude="{{lon}}" latitude="{{lat}}"
         on-google-map-dragend="_getPinData" on-google-map-ready="_getPinData" zoom="13">
             <template is="dom-repeat" items="[[buses]]" as="bus">
                 <google-map-marker latitude="[[bus.lat]]" longitude="[[bus.lon]]" value="[[bus]]" draggable="false" title="[[bus.speed]]"
