@@ -1,0 +1,270 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-ajax/iron-ajax.html">
+<link rel="import" href="../paper-input/paper-input.html">
+<link rel="import" href="../google-map/google-map.html">
+<link rel="import" href="../google-map/google-map-marker.html">
+<link rel="import" href="../google-map/google-map-directions.html">
+<link rel="import" href="../google-map/google-map-poly.html">
+<link rel="import" href="../google-map/google-map-point.html">
+<link rel="import" href="../paper-slider/paper-slider.html">
+
+<!--
+An element providing a solution to no problem in particular.
+
+Example:
+
+    <euacho-onibus></euacho-onibus>
+
+Example:
+
+    <euacho-onibus>
+      <h2>Hello euacho-onibus</h2>
+    </euacho-onibus>
+
+@demo demo/index.html
+@hero hero.svg
+-->
+
+<dom-module id="euacho-onibus">
+    <template>
+        <style>
+            :host {
+                display: block;
+                box-sizing: border-box;
+            }
+            
+            .author img {
+                display: block;
+                float: left;
+                margin-right: 5px;
+                max-height: 100px;
+                max-width: 100px;
+            }
+            
+            google-map {
+                height: 100vh;
+                width: 100vw;
+            }
+            
+            .caption {
+                padding-left: 5px;
+                color: #555555;
+            }
+        </style>
+
+
+        <iron-ajax auto url="http://dadosabertos.rio.rj.gov.br/apiTransporte/apresentacao/rest/index.cfm/obterTodasPosicoes" handle-as="json"
+        on-response="_getPinData" last-response="{{busPositions}}">
+        </iron-ajax>
+
+
+        <iron-ajax id="getBusRouteRequest" handle-as="text" on-response="_plotRoute"></iron-ajax>
+
+
+
+        <span style="padding-left:12px">[[buses.length]]</span><span> ônibus encontrados [[mapPoints.length]]</span>
+
+        <paper-input style="padding-left:12px" label="Buscar ônibus" value="{{searchText}}" on-change="_getPinData"></paper-input>
+        <span style="padding-left:12px">Distância: <span class="caption">[[kmRange]]</span> KM </span>
+        <paper-slider style="width:100%" pin snaps min="2" max="20" max-markers="20" step="1" on-change="_getPinData" value="{{kmRange}}"></paper-slider>
+
+        <google-map id="map" mouse-events="true" map="{{map}}" drag-events="true" longitude="-43.415540359863265" latitude="-22.999931627085985"
+        on-google-map-dragend="_getPinData" on-google-map-ready="_getPinData" zoom="13">
+            <template is="dom-repeat" items="[[buses]]" as="bus">
+                <google-map-marker latitude="[[bus.lat]]" longitude="[[bus.lon]]" value="[[bus]]" draggable="false" title="[[bus.speed]]"
+                click-events="true" on-google-map-marker-click="_getRoute">
+                    <span>Linha: [[bus.line]] :</span><span>Velocidade: [[bus.speed]] KM/H</span></br>
+                    <span>Data [[bus.dateTime]]</span>
+                </google-map-marker>
+            </template>
+            <google-map-poly closed>
+                <template is="dom-repeat" items="[[mapPoints]]" as="point">
+                    <google-map-point latitude="[[point.latitude]]" longitude="[[point.longitude]]"></google-map-point>
+                </template>
+            </google-map-poly>
+        </google-map>
+
+        <!--<google-map-directions id="mapSearch" map="{{map}}"></google-map-directions>-->
+
+    </template>
+
+    <script>
+        Polymer({
+            is: 'euacho-onibus',
+
+            properties: {
+                busPositions: {
+                    type: Object,
+                    notify: true,
+                    value: function () {
+                        return { "COLUMNS": ["DATAHORA", "ORDEM", "LINHA", "LATITUDE", "LONGITUDE", "VELOCIDADE"], "DATA": [] }
+                    }
+                },
+                buses: {
+                    type: Object,
+                    notify: true,
+                    value: function () {
+                        return [{ "line": "", "lat": -22.867491, "lon": -43.258709, "speed": 0.0 }]
+
+                    },
+                },
+                searchText: {
+                    type: String,
+                    value: ''
+                },
+                kmRange: {
+                    type: Number,
+                    value: 5
+                },
+                selectedLine: {
+                    type: String,
+                    notity: true,
+                },
+                mapPoints:{
+                    type: Object,
+                    notify: true,
+                    value: function () {
+                        return [];
+                    },
+                }
+            },
+
+            // Element Lifecycle
+
+            ready: function () {
+                // `ready` is called after all elements have been configured, but
+                // propagates bottom-up. This element's children are ready, but parents
+                // are not.
+                //
+                // This is the point where you should make modifications to the DOM (when
+                // necessary), or kick off any processes the element wants to perform.
+            },
+
+            attached: function () {
+                // `attached` fires once the element and its parents have been inserted
+                // into a document.
+                //
+                // This is a good place to perform any work related to your element's
+                // visual state or active behavior (measuring sizes, beginning animations,
+                // loading resources, etc).
+            },
+
+            detached: function () {
+                // The analog to `attached`, `detached` fires when the element has been
+                // removed from a document.
+                //
+                // Use this to clean up anything you did in `attached`.
+            },
+            
+            _getPinData: function (e) {
+
+                var lat = this.$.map.latitude;
+                var lon = this.$.map.longitude;
+                var searchText= this.searchText;
+                var kmRange = this.kmRange;
+                
+                
+                var result = this.busPositions.DATA
+                    .map(function (el) {
+                        return {
+                            dateTime: el[0],
+                            line: el[2],
+                            lat: el[3],
+                            lon: el[4],
+                            speed: el[5]
+                        }
+                    }).filter(function (bus) {
+                    return distance(lat, lon, bus.lat, bus.lon) < kmRange;
+                });
+                
+                if(searchText){
+                    result = result.filter(function(el){
+                        if(!el) return false;
+                        return el.line == searchText;
+                    });
+                }
+                
+                this.buses = result;
+            },
+            _getRoute: function(e){
+                this.$.getBusRouteRequest.url = 'http://dadosabertos.rio.rj.gov.br/apiTransporte/Apresentacao/csv/gtfs/onibus/percursos/gtfs_linha'+ e.target.value.line+'-shapes.csv'
+                this.$.getBusRouteRequest.generateRequest();
+            },
+            _plotRoute: function(e){
+                
+                var response = e.detail.xhr.response;
+                
+                var items = response.split("\n");
+                var points = items.splice(1,items.length-1).map(function(e){
+                  var item = e.split(',');
+                  
+                  var lat = item[5] || '';
+                  var lon = item[6] || '';
+                  
+                  return { latitude: parseFloat(lat.replace(/['"]+/g, '')), longitude: parseFloat(lon.replace(/['"]+/g, '')) }; 
+                });
+                
+                // var kml=  createKml(points);
+                this.mapPoints = points.concat(points.slice().reverse());
+            }
+            
+        });
+        
+        function distance(lat1, lon1, lat2, lon2) {
+            var p = 0.017453292519943295;    // Math.PI / 180
+            var c = Math.cos;
+            var a = 0.5 - c((lat2 - lat1) * p) / 2 +
+                c(lat1 * p) * c(lat2 * p) *
+                (1 - c((lon2 - lon1) * p)) / 2;
+
+            return 12742 * Math.asin(Math.sqrt(a)); // 2 * R; R = 6371 km
+        }
+        
+        function createKml(points){
+            
+            var pointsString = points.reduce(function(prev, curr){
+                
+                var line = curr.longitude + ',' + curr.latitude + '\n'
+                return prev + line; 
+                
+            },'');
+            
+            return `
+                <?xml version="1.0" encoding="UTF-8"?>
+                <kml xmlns="http://earth.google.com/kml/2.1">
+                <Document>
+                    <name>Rio Onibus</name>
+                    <description>Rio onibus</description>
+
+                    <Style id="blueLine">
+                        <LineStyle>
+                            <color>ffff0000</color>
+                            <width>2</width>
+                        </LineStyle>
+                    </Style>
+                    <Placemark>
+                    <name>Blue Line</name>
+                    <styleUrl>#blueLine</styleUrl>
+                    <LineString>
+                        <altitudeMode>relative</altitudeMode>
+                        <coordinates>
+                            ` + pointsString +
+                            `        </coordinates>
+                    </LineString>
+                    </Placemark>
+                </Document>
+                </kml>
+            `
+        }
+    </script>
+</dom-module>
