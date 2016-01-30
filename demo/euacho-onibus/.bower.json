@@ -27,13 +27,14 @@
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0"
   },
-  "_release": "b6b03e612e",
+  "_release": "ed990e2f8b",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "b6b03e612e9a99e4cdd58dc5a509e771066ecf6c"
+    "commit": "ed990e2f8b3bda4e085932934e748427b8f7d9b4"
   },
   "_source": "https://github.com/metheora/euacho-onibus.git",
   "_target": "*",
-  "_originalSource": "https://github.com/metheora/euacho-onibus.git"
+  "_originalSource": "https://github.com/metheora/euacho-onibus.git",
+  "_direct": true
 }
