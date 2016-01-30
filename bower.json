@@ -2,9 +2,9 @@
   "name": "euacho-onibus",
   "version": "1.0.7",
   "authors": [
-    "Anonymous <anonymous@example.com>"
+    "V8 <victor@metheora.com>"
   ],
-  "description": "An element providing a solution to no problem in particular.",
+  "description": "An polymer element to find a bus in rio",
   "keywords": [
     "web-component",
     "polymer",
@@ -12,18 +12,12 @@
   ],
   "main": "euacho-onibus.html",
   "license": "http://polymer.github.io/LICENSE.txt",
-  "homepage": "https://github.com/<USERNAME>/seed-element/",
+  "homepage": "https://github.com/metheora/euacho-onibus/",
   "ignore": [
     "/.*",
     "/test/"
   ],
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.2.0",
-    "iron-ajax": "PolymerElements/iron-ajax#~1.1.1",
-    "google-map": "GoogleWebComponents/google-map#~1.1.9",
-    "paper-input": "PolymerElements/paper-input#^1.1.5",
-    "paper-slider": "PolymerElements/paper-slider#^1.0.9",
-    "geo-location": "^1.0.2",
     "euacho-onibus": "https://github.com/metheora/euacho-onibus.git"
   },
   "devDependencies": {
