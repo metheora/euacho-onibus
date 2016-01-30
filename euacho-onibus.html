@@ -1,13 +1,3 @@
-<!--
-@license
-Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
-This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
-The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
-The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
-Code distributed by Google as part of the polymer project is also
-subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
--->
-
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-ajax/iron-ajax.html">
 <link rel="import" href="../paper-input/paper-input.html">
@@ -63,33 +53,29 @@ Example:
             }
         </style>
 
-
         <iron-ajax auto url="http://dadosabertos.rio.rj.gov.br/apiTransporte/apresentacao/rest/index.cfm/obterTodasPosicoes" handle-as="json"
         on-response="_getPinData" last-response="{{busPositions}}">
         </iron-ajax>
+        <iron-ajax id="getBusRouteRequest" handle-as="text" on-response="_plotRoute">
+        </iron-ajax>
 
-
-        <iron-ajax id="getBusRouteRequest" handle-as="text" on-response="_plotRoute"></iron-ajax>
-
-
-
-        <span style="padding-left:12px">[[buses.length]]</span><span> ônibus encontrados [[mapPoints.length]]</span>
-
-        <paper-input style="padding-left:12px" label="Buscar ônibus" value="{{searchText}}" on-change="_getPinData"></paper-input>
+        <!--<span style="padding-left:12px">[[buses.length]]</span><span> ônibus encontrados</span>-->
+        <paper-input style="padding-left:12px" type="number" label="Buscar ônibus" value="{{searchText}}" on-change="_getPinData"
+        focused="false" auto-focus="false"></paper-input>
+        <paper-checkbox id="hiddenInput" visibility="hidden" focus checked></paper-checkbox>
         <span style="padding-left:12px">Distância: <span class="caption">[[kmRange]]</span> KM </span>
         <paper-slider style="width:100%" pin snaps min="2" max="20" max-markers="20" step="1" on-change="_getPinData" value="{{kmRange}}"></paper-slider>
 
 
-         <geo-location latitude="{{lat}}"
-               longitude="{{lon}}"></geo-location>
-               
-        <google-map id="map" mouse-events="true" map="{{map}}" drag-events="true" longitude="{{lon}}" latitude="{{lat}}"
-        on-google-map-dragend="_getPinData" on-google-map-ready="_getPinData" zoom="13">
+        <geo-location latitude="{{lat}}" longitude="{{lon}}"></geo-location>
+
+        <google-map id="map" mouse-events="true" map="{{map}}" drag-events="true" longitude="{{lon}}" latitude="{{lat}}" on-google-map-dragend="_getPinData"
+        on-google-map-ready="_getPinData" zoom="13">
             <template is="dom-repeat" items="[[buses]]" as="bus">
                 <google-map-marker latitude="[[bus.lat]]" longitude="[[bus.lon]]" value="[[bus]]" draggable="false" title="[[bus.speed]]"
                 click-events="true" on-google-map-marker-click="_getRoute">
                     <span>Linha: [[bus.line]] :</span><span>Velocidade: [[bus.speed]] KM/H</span></br>
-                    <span>Data [[bus.dateTime]]</span>
+                    <span>Data [[bus.formatedDate]]</span>
                 </google-map-marker>
             </template>
             <template is="dom-repeat" items="[[mapShapes]]" as="shape">
@@ -179,19 +165,20 @@ Example:
                 var lon = this.$.map.longitude;
                 var searchText= this.searchText;
                 var kmRange = this.kmRange;
-                
+                var minimumDate = new Date().setHours(1);
                 
                 var result = this.busPositions.DATA
                     .map(function (el) {
                         return {
-                            dateTime: el[0],
+                            dateTime: new Date(el[0]),
+                            formatedDate:new Date(el[0]).toDateString(),
                             line: el[2],
                             lat: el[3],
                             lon: el[4],
                             speed: el[5]
                         }
                     }).filter(function (bus) {
-                    return distance(lat, lon, bus.lat, bus.lon) < kmRange;
+                    return distance(lat, lon, bus.lat, bus.lon) < kmRange && bus.dateTime.getTime() > minimumDate && bus.line;
                 });
                 
                 if(searchText){
@@ -200,7 +187,7 @@ Example:
                         return el.line == searchText;
                     });
                 }
-                
+                document.activeElement.blur();
                 this.buses = result;
             },
             _getRoute: function(e){
@@ -235,6 +222,7 @@ Example:
                 for(var key in mappedPoints){
                     mapShapes.push(mappedPoints[key]);
                 }
+                
                 this.mapShapes = mapShapes;
             }
             
